@@ -16,5 +16,54 @@ public class Waiter {
 	private String lastName;
 	private Restaurant restaurant;
 	
+	public Waiter() {
+		
+	}
 	
+	public Waiter(String email, String firstName, String lastName, Restaurant restaurant) {
+		this.email = email;
+		this.firstName = firstName;
+		this.lastName = lastName;
+		this.restaurant = restaurant;
+	}
+
+	public long getId() {
+		return id;
+	}
+
+	public void setId(long id) {
+		this.id = id;
+	}
+
+	public String getEmail() {
+		return email;
+	}
+
+	public void setEmail(String email) {
+		this.email = email;
+	}
+
+	public String getFirstName() {
+		return firstName;
+	}
+
+	public void setFirstName(String firstName) {
+		this.firstName = firstName;
+	}
+
+	public String getLastName() {
+		return lastName;
+	}
+
+	public void setLastName(String lastName) {
+		this.lastName = lastName;
+	}
+
+	public Restaurant getRestaurant() {
+		return restaurant;
+	}
+
+	public void setRestaurant(Restaurant restaurant) {
+		this.restaurant = restaurant;
+	}
 }
