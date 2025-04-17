@@ -9,6 +9,7 @@ import java.sql.Statement;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import jakarta.annotation.PostConstruct;
@@ -18,19 +19,30 @@ public class DatabaseInitializer {
 
 	private static final Logger logger = LoggerFactory.getLogger(DatabaseInitializer.class);
 
-	private final String jdbcUrl = "jdbc:mariadb://localhost:3306/";
-	private final String dbName = "lunchbon";
-	private final String user = "testUser";
-	private final String password = "test";
+	@Value("${spring.datasource.url}")
+	private String dbUrl;
+
+	@Value("${spring.datasource.username}")
+	private String user;
+
+	@Value("${spring.datasource.password}")
+	private String password;
+
+	private String extractDbName() {
+		return dbUrl.substring(dbUrl.lastIndexOf("/") + 1);
+	}
 
 	@PostConstruct
 	public void initDatabase() {
-		try (Connection conn = DriverManager.getConnection(jdbcUrl, user, password)) {
-			if (!databaseExists(conn)) {
-				createDatabase(conn);
-			} else if (isDatabaseEmpty()) {
-				dropDatabase(conn);
-				createDatabase(conn);
+		String dbName = extractDbName();
+		String jdbcRootUrl = dbUrl.replace("/" + dbName, "");
+
+		try (Connection conn = DriverManager.getConnection(jdbcRootUrl, user, password)) {
+			if (!databaseExists(conn, dbName)) {
+				createDatabase(conn, dbName);
+			} else if (isDatabaseEmpty(dbUrl)) {
+				dropDatabase(conn, dbName);
+				createDatabase(conn, dbName);
 			} else {
 				logger.info("✅ Database '{}' already exists and has tables. Skipping creation.", dbName);
 			}
@@ -39,7 +51,7 @@ public class DatabaseInitializer {
 		}
 	}
 
-	private boolean databaseExists(Connection conn) throws SQLException {
+	private boolean databaseExists(Connection conn, String dbName) throws SQLException {
 		String query = "SHOW DATABASES LIKE ?";
 		try (PreparedStatement ps = conn.prepareStatement(query)) {
 			ps.setString(1, dbName);
@@ -51,30 +63,29 @@ public class DatabaseInitializer {
 		}
 	}
 
-	private boolean isDatabaseEmpty() throws SQLException {
-		String urlWithDb = jdbcUrl + dbName;
-		try (Connection conn = DriverManager.getConnection(urlWithDb, user, password);
-				Statement stmt = conn.createStatement();
-				ResultSet rs = stmt.executeQuery("SHOW TABLES")) {
+	private boolean isDatabaseEmpty(String dbUrl) {
+		try (Connection conn = DriverManager.getConnection(dbUrl, user, password);
+			 Statement stmt = conn.createStatement();
+			 ResultSet rs = stmt.executeQuery("SHOW TABLES")) {
 
 			boolean hasTables = rs.next();
-			logger.info("📊 Database '{}' has tables: {}", dbName, hasTables);
+			logger.info("📊 Database has tables: {}", hasTables);
 			return !hasTables;
 
 		} catch (SQLException e) {
-			logger.warn("⚠️ Could not connect to '{}'. Assuming it's missing. Error: {}", dbName, e.getMessage());
+			logger.warn("⚠️ Could not connect to database. Assuming it's missing. Error: {}", e.getMessage());
 			return true;
 		}
 	}
 
-	private void createDatabase(Connection conn) throws SQLException {
+	private void createDatabase(Connection conn, String dbName) throws SQLException {
 		try (Statement stmt = conn.createStatement()) {
 			stmt.execute("CREATE DATABASE " + dbName);
 			logger.info("✅ Created database '{}'", dbName);
 		}
 	}
 
-	private void dropDatabase(Connection conn) throws SQLException {
+	private void dropDatabase(Connection conn, String dbName) throws SQLException {
 		try (Statement stmt = conn.createStatement()) {
 			stmt.execute("DROP DATABASE " + dbName);
 			logger.info("🗑️ Dropped database '{}'", dbName);
