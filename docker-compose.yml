@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  mariadb:
+    image: mariadb:11.5
+    container_name: mariadb
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: lunchbon
+      MYSQL_USER: testUser
+      MYSQL_PASSWORD: test
+    ports:
+      - "3306:3306"
+    volumes:
+      - mariadb_data:/var/lib/mysql
+
+  backend:
+    build: .
+    container_name: springboot-app
+    depends_on:
+      - mariadb
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mariadb://mariadb:3306/lunchbon
+      SPRING_DATASOURCE_USERNAME: testUser
+      SPRING_DATASOURCE_PASSWORD: test
+
+volumes:
+  mariadb_data:

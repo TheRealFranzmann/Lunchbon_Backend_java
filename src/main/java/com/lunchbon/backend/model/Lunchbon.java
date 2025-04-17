@@ -3,6 +3,7 @@ package com.lunchbon.backend.model;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
 
 public class Lunchbon {
 	
@@ -10,10 +11,10 @@ public class Lunchbon {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 	
-	private String userEmail;
-	
-	private String userEmployeeNumber;
-	
+    @ManyToOne(optional = false)
+    private Employee employee;
+
+    @ManyToOne(optional = false)
 	private Restaurant restaurant;
 	
 	private String timeStampAsDateString;
@@ -24,8 +25,6 @@ public class Lunchbon {
 
 	public Lunchbon(String userEmail, String userEmployeeNumber, Restaurant restaurant,
 			String timeStampAsDateString) {
-		this.userEmail = userEmail;
-		this.userEmployeeNumber = userEmployeeNumber;
 		this.restaurant = restaurant;
 		this.timeStampAsDateString = timeStampAsDateString;
 	}
@@ -38,20 +37,12 @@ public class Lunchbon {
 		this.id = id;
 	}
 
-	public String getUserEmail() {
-		return userEmail;
+	public Employee getEmployee() {
+		return employee;
 	}
 
-	public void setUserEmail(String userEmail) {
-		this.userEmail = userEmail;
-	}
-
-	public String getUserEmployeeNumber() {
-		return userEmployeeNumber;
-	}
-
-	public void setUserEmployeeNumber(String userEmployeeNumber) {
-		this.userEmployeeNumber = userEmployeeNumber;
+	public void setEmployee(Employee employee) {
+		this.employee = employee;
 	}
 
 	public Restaurant getRestaurant() {
